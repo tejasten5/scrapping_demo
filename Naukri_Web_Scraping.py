@@ -7,16 +7,20 @@ from selenium.webdriver.common.by import By
 import time
 import csv
 
-driver = webdriver.Chrome()
+from webdriver_manager.chrome import ChromeDriverManager
+driver = webdriver.Chrome(ChromeDriverManager().install())
 wait = WebDriverWait(driver, 20)
 
 URL = '''https://www.naukri.com/python-jobs?k=python'''
+FILE_NAME = 'Naukri_scrape.csv'
+FILE_MODE = 'a'
+CSV_HEADERS = ['Designation', 'Company name', 'URL', 'Experience', 'Salary','Description','Job Description']
 
 old_url = 'https://www.naukri.com/jobs-in-chennai-1'
 # Update the URL of Naukri Page! ( Make Sure that the page link which you're putting must be a job listing page and it must have Next page buttons. )
 driver.get(URL)
 
-count = 20  # Update the Number of Vacancy count you want to scrape.
+count = 5  # Update the Number of Vacancy count you want to scrape.
 
 index, new_index, i = '0', 1, 0  # This the the index variable of the elements from which data will be Scraped
 # Xpaths of the various element from which data will be scraped.
@@ -28,10 +32,10 @@ salary_xpath = '(//*[@class="jobTuple bgWhite br4 mb-8"])['+index+']/div/div/ul/
 job_description_xpath = '(//*[@class="jobTuple bgWhite br4 mb-8"])['+index+']/div/div/ul/li[3]/span'
 
 
-csv_file = open('Naukri_scrape.csv', 'a', encoding="utf-8", newline='')
+csv_file = open(FILE_NAME, FILE_MODE, encoding="utf-8", newline='')
 csv_writer = csv.writer(csv_file)
 # Writing the Heading of CSV file.
-csv_writer.writerow(['Designation', 'Company name', 'URL', 'Experience', 'Salary','Description','Job Description'])
+csv_writer.writerow(CSV_HEADERS)
 
 while i < count:
 
