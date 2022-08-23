@@ -37,9 +37,22 @@ job_description_xpath = '(//*[@class="jobTuple bgWhite br4 mb-8"])['+index+']/di
 # time.sleep(10)
 # wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="root"]/div[3]/div[2]/section[2]/div[2]/article[1]/div[1]'))).click()
 
-time.sleep(10)
-wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="root"]/div[3]/div[2]/section[2]/div[2]/article[1]/div[1]'))).click()
-time.sleep(10)
+
+
+elements = driver.find_elements(By.TAG_NAME, 'article')
+import pdb;pdb.set_trace()
+total_page_count = len(elements)
+print(total_page_count,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+for i in range(1,total_page_count + 1):
+    time.sleep(2)
+    wait.until(EC.element_to_be_clickable((By.XPATH, f'//*[@id="root"]/div[3]/div[2]/section[2]/div[2]/article[{i}]/div[1]'))).click()
+    time.sleep(2)
+
+
+
+
+
 
 
 # csv_file = open(FILE_NAME, FILE_MODE, encoding="utf-8", newline='')
