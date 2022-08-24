@@ -119,6 +119,7 @@ class ScrapLinkdinJob(XPATHConstant):
             salary = self.wait.until(EC.presence_of_element_located((By.XPATH,self.SALARY_XPATH))).text
         except Exception as e:                
             salary = "NULL"
+            
 
         try:
             job_description = self.wait.until(EC.presence_of_element_located((By.XPATH,self.JOB_DESCRIPTION_XPATH))).text
