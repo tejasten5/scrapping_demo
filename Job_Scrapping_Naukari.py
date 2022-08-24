@@ -29,7 +29,7 @@ class XPATHConstant:
     ROLE_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[1]/span'
     INDUSTRY_TYPE_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[2]/span'
     FUNCTIONAL_AREA_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[3]/span'
-    EMPLOYMENT_TYPE_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[4]/span'
+    EMPLOYMENT_TYPE_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[4]/span/span'
     ROLE_CATEGORY_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[1]/span'
     EDUCATION_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[3]'
     KEY_SKILL_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[4]'
@@ -56,7 +56,7 @@ class XPATHConstant:
         KEY_SKILL_XPATH,
         ABOUT_COMPANY_XPATH,
         ADDRESS_XPATH,
-        # POST_BY_XPATH,
+        POST_BY_XPATH,
         POST_DATE_XPATH,
         WEBSITE_XPATH,
         URL_XPATH
@@ -142,6 +142,8 @@ class ScrapLinkdinJob(XPATHConstant):
 
         try:
             employment_type = self.wait.until(EC.presence_of_element_located((By.XPATH,self.EMPLOYMENT_TYPE_XPATH))).text
+            if ',' in employment_type:
+                employment_type  = employment_type.replace(',', ' ')
         except Exception as e:                
             employment_type = "NULL"
 
@@ -162,11 +164,16 @@ class ScrapLinkdinJob(XPATHConstant):
 
         try:
             about_company = self.wait.until(EC.presence_of_element_located((By.XPATH,self.ABOUT_COMPANY_XPATH))).text
+            if ',' in about_company:
+                about_company  = about_company.replace(',', ' ')
         except Exception as e:                
             about_company = "NULL"
         
         try:
             address = self.wait.until(EC.presence_of_element_located((By.XPATH,self.ADDRESS_XPATH))).text
+            
+            if ',' in address:
+                address  = address.replace(',', ' ')
         except Exception as e:                
             address = "NULL"
 
