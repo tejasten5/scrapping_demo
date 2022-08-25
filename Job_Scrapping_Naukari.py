@@ -10,7 +10,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 class ScrapNaukriJobs:
     BASE_URL = 'https://www.naukri.com/'
     FILE_NAME = 'scrap_naukri_jobs.csv'
-
     CTC_FILTER_QUERY_PARAMS = '&ctcFilter=101&ctcFilter=15to25&ctcFilter=25to50&ctcFilter=50to75&ctcFilter=75to100'
     CITY_FILTER_PARAMS = '&cityTypeGid=6&cityTypeGid=17&cityTypeGid=73&cityTypeGid=97&cityTypeGid=134&cityTypeGid=139&cityTypeGid=183&cityTypeGid=220&cityTypeGid=232&cityTypeGid=9508&cityTypeGid=9509'
 
@@ -24,22 +23,18 @@ class ScrapNaukriJobs:
         self.job_detail_links = []
 
     def get_job_detail_links(self):
-        for page in range(1,11):
-            query_param = f'{self.language}-jobs' 
-
-            URL = f"{self.BASE_URL}{query_param}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}" if page == 1 else f"{self.BASE_URL}{query_param}-{str(page)}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}"
-            
-            self.driver.get(URL)
-            timeDelay = random.randrange(0, 5)
-            time.sleep(timeDelay) 
+        for page in range(1,4):
+            query_param = f'{self.language}-jobs'
+            URL = f"{self.BASE_URL}{query_param}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}" if page == 1 else f"{self.BASE_URL}{query_param}-{str(page)}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}"            
+            self.driver.get(URL)            
+            time.sleep(5) 
             soup=BeautifulSoup(self.driver.page_source, 'lxml')
 
-            for i in soup.findAll(attrs={'class':"jobTuple bgWhite br4 mb-8"}):
-                for j in i.findAll(attrs={'class':"title fw500 ellipsis"}):
-                    self.job_detail_links.append(j.get('href'))
-            
+            for outer_artical in soup.findAll(attrs={'class':"jobTuple bgWhite br4 mb-8"}):                
+                for inner_links in outer_artical.find(attrs={'class':"jobTupleHeader"}).findAll(attrs={'class':"title fw500 ellipsis"}):
+                    self.job_detail_links.append(inner_links.get('href'))
+
     def scrap_details(self):
-        print("Scraping call started...")
         self.get_job_detail_links()
         time.sleep(2)
         designation_list,company_name_list,experience_list,salary_list = [],[],[],[]        
@@ -50,22 +45,25 @@ class ScrapNaukriJobs:
 
 
         for link in range(len(self.job_detail_links)):
-
+            print(link,'...')
+            time.sleep(10)
             self.driver.get(self.job_detail_links[link])    
             soup=BeautifulSoup(self.driver.page_source, 'lxml')
 
             if soup.find(attrs={'class':"salary"})==None: 
                 continue
             else:
-                company_name_list.append(soup.find(attrs={'class':"jd-header-comp-name"}).text)
-                experience_list.append(soup.find(attrs={'class':"exp"}).text)
-                salary_list.append(soup.find(attrs={'class':"salary"}).text)
-                location_list.append(soup.find(attrs={'class':'loc'}).find('a').text)
-                designation_list.append(soup.find(attrs={'class':"jd-header-title"}).text)                
-                job_description_list.append(soup.find(attrs={'class':"job-desc"}).text)               
-                post_date_list.append([i for i in soup.find(attrs={'class':"jd-stats"})][0].text.split(':')[1])
-                website_list.append(soup.find(attrs={'class':"jd-header-comp-name"}).contents[0])
-                url_list.append(soup.find(attrs={'class':"jd-header-comp-name"}).contents[0])                
+
+                company_name_list.append("NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).text)                
+                experience_list.append("NA" if soup.find(attrs={'class':"exp"}) == None else soup.find(attrs={'class':"exp"}).text)
+                salary_list.append("NA" if soup.find(attrs={'class':"salary"})== None else soup.find(attrs={'class':"salary"}).text)
+                location_list.append("NA" if soup.find(attrs={'class':'loc'}) == None else soup.find(attrs={'class':'loc'}).find('a').text)
+                designation_list.append("NA" if soup.find(attrs={'class':"jd-header-title"}) == None else soup.find(attrs={'class':"jd-header-title"}).text)
+                job_description_list.append("NA" if soup.find(attrs={'class':"job-desc"})==None else soup.find(attrs={'class':"job-desc"}).text)
+                post_date_list.append(["NA"] if soup.find(attrs={'class':"jd-stats"}) == None else [i for i in soup.find(attrs={'class':"jd-stats"})][0].text.split(':')[1])
+                website_list.append("NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).contents[0]['href'])
+                url_list.append("NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).contents[0]['href'])      
+                         
 
                 details=[]
                 for i in soup.find(attrs={'class':"other-details"}).findAll(attrs={'class':"details"}):
@@ -92,13 +90,10 @@ class ScrapNaukriJobs:
                 else:
                     post_by_list.append(soup.find(attrs={'class':"name-designation"}).text)
 
-
                 if soup.find(attrs={'class':"about-company"})==None:                    
                     about_company_list.append("NA")                    
-                else:
-                    
-                    address_list.append("NA" if soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}) == None else soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}).text)  
-
+                else:                    
+                    address_list.append("NA" if soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}) == None else soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}).text)
                     about_company_list.append(soup.find(attrs={'class':"about-company"}).find(attrs={'class':"detail dang-inner-html"}).text)
 
                 
@@ -125,7 +120,7 @@ class ScrapNaukriJobs:
         df['Url'] = url_list
         df['Job Description']=job_description_list
         df['About Company']=about_company_list
-
+        print(len(df),"????????????????????????????????????????????????????????????????????????????????????????????????????????????????")
         df.to_csv(self.FILE_NAME,index=False)
         self.driver.close()
         
@@ -133,4 +128,5 @@ class ScrapNaukriJobs:
 print("Program star time...",time.time())
 scrap_naukri = ScrapNaukriJobs("PYTHON")
 scrap_naukri.scrap_details()
+# scrap_naukri.get_job_detail_links()
 print("Execution completed...",time.time())
