@@ -15,7 +15,6 @@ class ScrapNaukriJobs:
     CITY_FILTER_PARAMS = '&cityTypeGid=6&cityTypeGid=17&cityTypeGid=73&cityTypeGid=97&cityTypeGid=134&cityTypeGid=139&cityTypeGid=183&cityTypeGid=220&cityTypeGid=232&cityTypeGid=9508&cityTypeGid=9509'
 
     def __init__(self,language):
-        print("...Initializing....")
         options = webdriver.ChromeOptions()
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--incognito')
@@ -25,11 +24,10 @@ class ScrapNaukriJobs:
         self.job_detail_links = []
 
     def get_job_detail_links(self):
-        print("Getting job detail links....")
         for page in range(1,11):
             query_param = f'{self.language}-jobs' 
 
-            URL = f"{self.BASE_URL}{query_param}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}" page == 1 else f"{self.BASE_URL}{query_param}-{str(page)}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}"
+            URL = f"{self.BASE_URL}{query_param}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}" if page == 1 else f"{self.BASE_URL}{query_param}-{str(page)}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}"
             
             self.driver.get(URL)
             timeDelay = random.randrange(0, 5)
@@ -50,10 +48,8 @@ class ScrapNaukriJobs:
         key_skill_list,about_company_list,address_list,post_by_list = [],[],[],[]       
         post_date_list,website_list,url_list = [],[],[]
 
-        print(len(self.job_detail_links),"??????????????????????????????????")
 
         for link in range(len(self.job_detail_links)):
-            print(self.job_detail_links[link],">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",link)
 
             self.driver.get(self.job_detail_links[link])    
             soup=BeautifulSoup(self.driver.page_source, 'lxml')
