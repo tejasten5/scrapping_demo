@@ -52,9 +52,11 @@ class ScrapNaukriJobs:
 
             if soup.find(attrs={'class':"salary"})==None: 
                 continue
-            else:
+            else:   
 
-                company_name_list.append("NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).text)                
+                import pdb;pdb.set_trace()
+
+                company_name_list.append("NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).find(attrs={'class':"pad-rt-8"}).text)                
                 experience_list.append("NA" if soup.find(attrs={'class':"exp"}) == None else soup.find(attrs={'class':"exp"}).text)
                 salary_list.append("NA" if soup.find(attrs={'class':"salary"})== None else soup.find(attrs={'class':"salary"}).text)
                 location_list.append("NA" if soup.find(attrs={'class':'loc'}) == None else soup.find(attrs={'class':'loc'}).find('a').text)
@@ -93,7 +95,7 @@ class ScrapNaukriJobs:
                 if soup.find(attrs={'class':"about-company"})==None:                    
                     about_company_list.append("NA")                    
                 else:                    
-                    address_list.append("NA" if soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}) == None else soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}).text)
+                    address_list.append("NA" if soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}) == None else soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}).find('span').text)
                     about_company_list.append(soup.find(attrs={'class':"about-company"}).find(attrs={'class':"detail dang-inner-html"}).text)
 
                 
@@ -120,7 +122,6 @@ class ScrapNaukriJobs:
         df['Url'] = url_list
         df['Job Description']=job_description_list
         df['About Company']=about_company_list
-        print(len(df),"????????????????????????????????????????????????????????????????????????????????????????????????????????????????")
         df.to_csv(self.FILE_NAME,index=False)
         self.driver.close()
         
