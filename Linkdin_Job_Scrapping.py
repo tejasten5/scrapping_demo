@@ -84,6 +84,7 @@ class ScrapLinkdinJobs:
                 self.driver.get(URL)
 
                 time.sleep(10)
+                
 
                 try:
                     designation = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/a/h2').text         
@@ -98,7 +99,7 @@ class ScrapLinkdinJobs:
                 try:
                     location=self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span/span[2]').text
                 except Exception as e:
-                    location = "NA"              
+                    location = "NA"   
                 
                 try:
                     post_date = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span[2]/span').text
@@ -115,7 +116,7 @@ class ScrapLinkdinJobs:
                 try:
                     employees = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div/div[2]/ul/li[2]/span').text
                 except Exception as e:
-                    employees = "NA"    
+                    employees = "NA"  
                 
 
                 time.sleep(3)
@@ -123,7 +124,7 @@ class ScrapLinkdinJobs:
                 try:
                     description = self.driver.find_element(By.XPATH,'//*[@id="job-details"]/span').text  
                 except Exception as e:
-                    description = "NA"                       
+                    description = "NA"  
                              
 
                 time.sleep(2)
@@ -137,7 +138,7 @@ class ScrapLinkdinJobs:
                 try:
                     post_by = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[2]/a').text                    
                 except Exception as e:
-                    post_by = "NA"                    
+                    post_by = "NA"     
 
                 try:
                     post_designation = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[2]/div[2]/div')                    
