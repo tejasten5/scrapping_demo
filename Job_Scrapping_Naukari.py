@@ -1,236 +1,161 @@
-import time,csv,pandas
+from bs4 import BeautifulSoup
+import pandas as pd
+import time
+import random
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
+import csv
+import logging
 
-class XPATHConstant:
-    DELAY = 20 
+
+
+class CSVHeaders:
+    CSV_DESIGNATION='Designation'
+    CSV_COMPANY_NAME = 'Company Name'
+    CSV_SALARY = 'Salary'
+    CSV_EXPERIENCE = 'Experience'
+    CSV_LOCATION = 'Location'
+    CSV_ROLE = 'Role'
+    CSV_SKILL = 'Skills'
+    CSV_QUALIFICATION = 'Qualification'
+    CSV_INDUSTRY_TYPE = 'Industry Type'
+    CSV_FUNCTIONAL_AREA = 'Functional Area'
+    CSV_EMPLOYMENT_TYPE = 'Employment Type'
+    CSV_ROLE_CATEGORIE = 'Role Category'
+    CSV_ADDRESS = 'Address'
+    CSV_POST_BY = 'Post By'
+    CSV_POST_DATE = 'Post Date'
+    CSV_WEBSITE = 'Website'
+    CSV_URL = 'Url'
+    CSV_ABOUT_COMPANY = 'About Company'
+    CSV_JOB_DESCRIPTION = 'Job Description'
+
+
+class ScrapNaukriJobs(CSVHeaders):   
+
     BASE_URL = 'https://www.naukri.com/'
-
-    #CSV file data
-    FILE_NAME = 'Naukri_scrape.csv'
-    FILE_MODE = 'a'
-    CSV_HEADERS = ['Designation', 'Company name', 'URL', 'Experience', 'Salary','Description','Job Description']
-    
-    # Filters 
+    FILE_NAME = 'scrap_naukri_jobs.csv'
     CTC_FILTER_QUERY_PARAMS = '&ctcFilter=101&ctcFilter=15to25&ctcFilter=25to50&ctcFilter=50to75&ctcFilter=75to100'
     CITY_FILTER_PARAMS = '&cityTypeGid=6&cityTypeGid=17&cityTypeGid=73&cityTypeGid=97&cityTypeGid=134&cityTypeGid=139&cityTypeGid=183&cityTypeGid=220&cityTypeGid=232&cityTypeGid=9508&cityTypeGid=9509'
-    
-    # Xpath
-    HREF_XPATH = '//*[@id="root"]/div[3]/div[2]/section[2]/div[2]/article[1]/div[1]/div[1]/a'
-    DESIGNATION_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[1]/div[1]/div[1]/header/h1'
-    COMPANY_NAME_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[1]/div[1]/div[1]/div/a[1]'
-    EXPERIENCE_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[1]/div[1]/div[2]/div[1]/span'
-    LOCATION_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[1]/div[1]/div[2]/div[3]/span/a[1]'
-    SALARY_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[1]/div[1]/div[2]/div[2]/span'
-    JOB_DESCRIPTION_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[1]/ul'
-    ROLE_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[1]/span'
-    INDUSTRY_TYPE_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[2]/span'
-    FUNCTIONAL_AREA_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[3]/span'
-    EMPLOYMENT_TYPE_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[4]/span/span'
-    ROLE_CATEGORY_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[2]/div[1]/span'
-    EDUCATION_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[3]'
-    KEY_SKILL_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[2]/div[4]'
-    ABOUT_COMPANY_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[4]/div[1]'
-    ADDRESS_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[4]/div[3]/span'	
-    POST_BY_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[3]/header/div[1]'
-    POST_DATE_XPATH = '//*[@id="root"]/main/div[2]/div[2]/section[1]/div[2]/div[1]/span[1]/span'
-    WEBSITE_XPATH = ''	
-    URL_XPATH = ''
+    HEADERS_LIST = [
+            CSVHeaders.CSV_DESIGNATION,
+            CSVHeaders.CSV_COMPANY_NAME,
+            CSVHeaders.CSV_SALARY,
+            CSVHeaders.CSV_EXPERIENCE,
+            CSVHeaders.CSV_LOCATION,
+            CSVHeaders.CSV_ROLE,
+            CSVHeaders.CSV_SKILL,
+            CSVHeaders.CSV_QUALIFICATION,
+            CSVHeaders.CSV_INDUSTRY_TYPE,
+            CSVHeaders.CSV_FUNCTIONAL_AREA,
+            CSVHeaders.CSV_EMPLOYMENT_TYPE,
+            CSVHeaders.CSV_ROLE_CATEGORIE,
+            CSVHeaders.CSV_ADDRESS,
+            CSVHeaders.CSV_POST_BY,
+            CSVHeaders.CSV_POST_DATE,
+            CSVHeaders.CSV_WEBSITE,
+            CSVHeaders.CSV_URL,
+            CSVHeaders.CSV_ABOUT_COMPANY,
+            CSVHeaders.CSV_JOB_DESCRIPTION,
+        ]
 
-    XPATH_LIST = [
-        DESIGNATION_XPATH,
-        COMPANY_NAME_XPATH,
-        EXPERIENCE_XPATH,
-        LOCATION_XPATH,
-        SALARY_XPATH,
-        JOB_DESCRIPTION_XPATH,
-        ROLE_XPATH,
-        INDUSTRY_TYPE_XPATH,
-        FUNCTIONAL_AREA_XPATH,
-        EMPLOYMENT_TYPE_XPATH,
-        ROLE_CATEGORY_XPATH,
-        EDUCATION_XPATH,
-        KEY_SKILL_XPATH,
-        ABOUT_COMPANY_XPATH,
-        ADDRESS_XPATH,
-        POST_BY_XPATH,
-        POST_DATE_XPATH,
-        WEBSITE_XPATH,
-        URL_XPATH
-    ]
-
-
-
-class ScrapLinkdinJob(XPATHConstant):
-    def __init__(self, language):
+    def __init__(self,language):
+        options = webdriver.ChromeOptions()
+        options.add_argument('--ignore-certificate-errors')
+        options.add_argument('--incognito')
+        options.add_argument('--headless')
         self.driver = webdriver.Chrome(ChromeDriverManager().install())
-        self.driver.maximize_window()
-        self.wait = WebDriverWait(self.driver, self.DELAY)
-        self.driver.implicitly_wait(10)
-        self.language = language.lower()       
-    
-    def open_browser(self):
-        query_param = f'{self.language}-jobs'        
-        URL = f"{self.BASE_URL}{query_param}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}"
-        self.driver.get(URL)        
-        self.find_links()
-        time.sleep(20)
-        self.driver.close()
+        self.language = language.lower()
+        self.job_detail_links = []
 
-    def find_links(self):                
-        links = self.driver.find_elements(By.XPATH,self.HREF_XPATH)
-        df_list = []
-        for link in links:    
-            window_url = link.get_attribute('href')            
-            self.driver.execute_script("window.open('%s', '_blank')" % window_url)
-            self.driver.switch_to.window(self.driver.window_handles[-1])          
-            kwargs = self.capture_data(link,df_list)               
-            df_list.append(kwargs)  
-            time.sleep(5)
-        self.generate_csv(df_list)
+    def get_job_detail_links(self):
+        for page in range(1,2):
+            query_param = f'{self.language}-jobs'
+            URL = f"{self.BASE_URL}{query_param}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}" if page == 1 else f"{self.BASE_URL}{query_param}-{str(page)}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}"            
+            self.driver.get(URL)            
+            time.sleep(5) 
+            soup=BeautifulSoup(self.driver.page_source, 'lxml')
+
+            for outer_artical in soup.findAll(attrs={'class':"jobTuple bgWhite br4 mb-8"}):                
+                for inner_links in outer_artical.find(attrs={'class':"jobTupleHeader"}).findAll(attrs={'class':"title fw500 ellipsis"}):
+                    self.job_detail_links.append(inner_links.get('href'))
+
+    def scrap_details(self):
+        self.get_job_detail_links()
+        time.sleep(2)
+        designation_list,company_name_list,experience_list,salary_list = [],[],[],[]        
+        location_list,job_description_list,role_list,industry_type_list = [],[],[],[]        
+        functional_area_list,employment_type_list,role_category_list,education_list = [],[],[],[]       
+        key_skill_list,about_company_list,address_list,post_by_list = [],[],[],[]       
+        post_date_list,website_list,url_list = [],[],[]
+
+        
         
 
-    def capture_data(self,link,df_list):       
-    
-        try:
-            designation = self.wait.until(EC.presence_of_element_located((By.XPATH,self.DESIGNATION_XPATH))).text
-        except Exception as e:                            
-            designation = "NULL"
+        with open(self.FILE_NAME, 'a') as csv_file:
+            dict_object = csv.DictWriter(csv_file, fieldnames=self.HEADERS_LIST)
+            dict_object.writeheader()
+            for link in range(len(self.job_detail_links)):
+                context = {}
+                time.sleep(10)
+                self.driver.get(self.job_detail_links[link]) 
+                soup=BeautifulSoup(self.driver.page_source, 'lxml')              
+                
+
+                if soup.find(attrs={'class':"salary"})==None: 
+                    continue
+                else:
+                    context.update({self.CSV_DESIGNATION:"NA" if soup.find(attrs={'class':"jd-header-title"}) == None else soup.find(attrs={'class':"jd-header-title"}).text})
+                    context.update({self.CSV_COMPANY_NAME:"NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).find(attrs={'class':"pad-rt-8"}).text})                    
+                    context.update({self.CSV_SALARY:"NA" if soup.find(attrs={'class':"salary"})== None else soup.find(attrs={'class':"salary"}).text})
+                    context.update({self.CSV_EXPERIENCE:"NA" if soup.find(attrs={'class':"exp"}) == None else soup.find(attrs={'class':"exp"}).text})
+                    context.update({self.CSV_LOCATION:"NA" if soup.find(attrs={'class':'loc'}) == None else soup.find(attrs={'class':'loc'}).find('a').text})
+
+                    details=[]
+                    for i in soup.find(attrs={'class':"other-details"}).findAll(attrs={'class':"details"}):
+                        details.append(i.text)
+                    context.update({self.CSV_ROLE:details[0],
+                        self.CSV_INDUSTRY_TYPE:details[1],
+                        self.CSV_FUNCTIONAL_AREA:details[2],
+                        self.CSV_EMPLOYMENT_TYPE:details[3],
+                        self.CSV_ROLE_CATEGORIE:details[4]                
+                    })
+                    
+                    context.update({self.CSV_JOB_DESCRIPTION:"NA" if soup.find(attrs={'class':"job-desc"})==None else soup.find(attrs={'class':"job-desc"}).text})
+                    context.update({self.CSV_POST_DATE :["NA"] if soup.find(attrs={'class':"jd-stats"}) == None else [i for i in soup.find(attrs={'class':"jd-stats"})][0].text.split(':')[1]})
+                    context.update({self.CSV_WEBSITE:"NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).contents[0]['href']})
+                    context.update({self.CSV_URL:"NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).contents[0]['href']})
+                           
+
+                    qual=[]
+                    for i in soup.find(attrs={'class':"education"}).findAll(attrs={'class':'details'}):
+                        qual.append(i.text)
+                    context.update({self.CSV_QUALIFICATION:qual}) 
+                    
+
+                    sk=[]
+                    for i in soup.find(attrs={'class':"key-skill"}).findAll('a'):
+                        sk.append(i.text)                     
+                    context.update({self.CSV_SKILL:",".join(sk)})      
+
+                    if soup.find(attrs={'class':"name-designation"})==None:
+                        context.update({self.CSV_POST_BY:"NA"})         
+                    else:
+                        context.update({self.CSV_POST_BY:soup.find(attrs={'class':"name-designation"}).text})
+
+
+
+                    if soup.find(attrs={'class':"about-company"})==None:                    
+                        context.update({self.CSV_ABOUT_COMPANY:"NA"})
+                    else:
+                        context.update({self.CSV_ADDRESS:"NA" if soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}) == None else soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}).find('span').text})                      
+                        context.update({self.CSV_ABOUT_COMPANY:soup.find(attrs={'class':"about-company"}).find(attrs={'class':"detail dang-inner-html"}).text})
+                dict_object.writerow(context)
+
         
-        try:
-            company_name = self.wait.until(EC.presence_of_element_located((By.XPATH,self.COMPANY_NAME_XPATH))).text
-        except Exception as e:                
-            company_name = "NULL"
+logging.warning("{0} Program start time...".format(time.time()))
+scrap_naukri = ScrapNaukriJobs("PYTHON")
+scrap_naukri.scrap_details()
+logging.warning("{0} Execution completed...".format(time.time()))
 
-        try:
-            experience = self.wait.until(EC.presence_of_element_located((By.XPATH,self.EXPERIENCE_XPATH))).text
-        except Exception as e:                
-            experience = "NULL"
-
-        try:
-            location = self.wait.until(EC.presence_of_element_located((By.XPATH,self.LOCATION_XPATH))).text
-        except Exception as e:                
-            location = "NULL"
-
-        try:
-            salary = self.wait.until(EC.presence_of_element_located((By.XPATH,self.SALARY_XPATH))).text
-        except Exception as e:                
-            salary = "NULL"
-            
-
-        try:
-            job_description = self.wait.until(EC.presence_of_element_located((By.XPATH,self.JOB_DESCRIPTION_XPATH))).text
-        except Exception as e:                
-            job_description = "NULL"
-
-        try:
-            role = self.wait.until(EC.presence_of_element_located((By.XPATH,self.ROLE_XPATH))).text
-        except Exception as e:                
-            role = "NULL"
-
-        try:
-            industry_type = self.wait.until(EC.presence_of_element_located((By.XPATH,self.INDUSTRY_TYPE_XPATH))).text
-        except Exception as e:                
-            industry_type = "NULL"
-
-        try:
-            functional_area = self.wait.until(EC.presence_of_element_located((By.XPATH,self.FUNCTIONAL_AREA_XPATH))).text
-        except Exception as e:                
-            functional_area = "NULL"
-
-        try:
-            employment_type = self.wait.until(EC.presence_of_element_located((By.XPATH,self.EMPLOYMENT_TYPE_XPATH))).text
-            if ',' in employment_type:
-                employment_type  = employment_type.replace(',', ' ')
-        except Exception as e:                
-            employment_type = "NULL"
-
-        try:
-            role_category = self.wait.until(EC.presence_of_element_located((By.XPATH,self.ROLE_CATEGORY_XPATH))).text
-        except Exception as e:                
-            role_category = "NULL"
-        
-        try:
-            education = self.wait.until(EC.presence_of_element_located((By.XPATH,self.EDUCATION_XPATH))).text
-        except Exception as e:                
-            education = "NULL"
-        
-        try:
-            key_skill = self.wait.until(EC.presence_of_element_located((By.XPATH,self.KEY_SKILL_XPATH))).text
-        except Exception as e:                
-            key_skill = "NULL"
-
-        try:
-            about_company = self.wait.until(EC.presence_of_element_located((By.XPATH,self.ABOUT_COMPANY_XPATH))).text
-            if ',' in about_company:
-                about_company  = about_company.replace(',', ' ')
-        except Exception as e:                
-            about_company = "NULL"
-        
-        try:
-            address = self.wait.until(EC.presence_of_element_located((By.XPATH,self.ADDRESS_XPATH))).text
-            
-            if ',' in address:
-                address  = address.replace(',', ' ')
-        except Exception as e:                
-            address = "NULL"
-
-        try:
-            post_by = self.wait.until(EC.presence_of_element_located((By.XPATH,self.POST_BY_XPATH))).text
-        except Exception as e:                
-            post_by = "NULL"
-        
-        try:
-            post_date = self.wait.until(EC.presence_of_element_located((By.XPATH,self.POST_DATE_XPATH))).text
-        except Exception as e:                
-            post_date = "NULL"
-
-        try:
-            website = self.wait.until(EC.presence_of_element_located((By.XPATH,self.WEBSITE_XPATH))).text
-        except Exception as e:                
-            website = "NULL"
-
-        try:
-            website_url = self.wait.until(EC.presence_of_element_located((By.XPATH,self.URL_XPATH))).text
-        except Exception as e:                
-            website_url = "NULL"
-        
-
-
-        kwargs = {
-            'designation':designation,
-            'company_name':company_name,
-            'experience':experience,
-            'location':location,
-            'salary':salary,
-            'job_description':job_description,
-            'role':role,
-            'industry_type':industry_type,
-            'functional_area':functional_area,
-            'employment_type':employment_type,
-            'role_category':role_category,
-            'education':education,
-            'key_skill':key_skill,
-            'about_company':about_company,
-            'address':address,
-            'post_by':post_by,
-            'post_date':post_date,
-            'website':website,
-            'website_url':website_url
-        }
-
-
-
-        return kwargs 
-
-    def generate_csv(self,df_list):
-        df = pandas.DataFrame(df_list)
-        df.to_csv(self.FILE_NAME, sep='\t', encoding='utf-8')
-
-       
-scrap_jobs = ScrapLinkdinJob("java")
-scrap_jobs.open_browser()
 
