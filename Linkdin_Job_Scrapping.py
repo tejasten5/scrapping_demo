@@ -1,134 +1,167 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
-import time
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 import pandas as pd
-import os
+import os,csv,time,logging
 from dotenv import load_dotenv
-import csv
 load_dotenv()
+ 
+# USER_EMAIL 
+# USER_PASSWORD 
 
+class LinkdinHeaders:
+    LD_DESIGNATION = 'Designation'
+    LD_COMPANY_NAME = 'Company Name'
+    LD_LOCATION = 'Location'
+    LD_POST_DATE = 'Post Date'
+    LD_POST_TYPE = 'Job Type'
+    LD_EMPLOYEES = 'Employees'
+    LD_JOB_DESCRIPTION = 'Job Description'
+    LD_URL = 'URL'
+    LD_POST_BY = 'Post By'
+    LD_POST_DESIGNATION = 'Post Designation'
+    LD_INDUSTRY_TYPE = 'Industry'
 
-options = webdriver.ChromeOptions()
-options.add_argument('--ignore-certificate-errors')
-options.add_argument('--incognito')
-options.add_argument('--headless')
-driver = webdriver.Chrome(ChromeDriverManager().install())
-driver.get("https://linkedin.com/uas/login")
-time.sleep(5)
-soup=BeautifulSoup(driver.page_source, 'lxml')
+class ScrapLinkdinJobs:
+    LINKDIN_LOGIN_URL = "https://linkedin.com/uas/login"
+    FILE_NAME = "linkdin_jobs.csv"
+    HEADERS_LIST = [
+        LinkdinHeaders.LD_DESIGNATION,
+        LinkdinHeaders.LD_COMPANY_NAME,
+        LinkdinHeaders.LD_LOCATION,
+        LinkdinHeaders.LD_POST_DATE,
+        LinkdinHeaders.LD_POST_TYPE,
+        LinkdinHeaders.LD_EMPLOYEES,
+        LinkdinHeaders.LD_JOB_DESCRIPTION,
+        LinkdinHeaders.LD_URL,
+        LinkdinHeaders.LD_POST_BY,
+        LinkdinHeaders.LD_POST_DESIGNATION,
+        LinkdinHeaders.LD_INDUSTRY_TYPE
+    ]
 
-username = driver.find_element(By.ID,"username")
-# Enter Your Email Address
-username.send_keys(os.environ.get('USER_EMAIL'))
-pword = driver.find_element(By.ID,"password")
-# Enter Your Password
-pword.send_keys(os.environ.get('USER_PASSWORD'))		
-driver.find_element(By.XPATH,"//button[@type='submit']").click()
-time.sleep(3)
+    def __init__(self,area_of_search=None,location=None):
+        options = webdriver.ChromeOptions()
+        options.add_argument('--ignore-certificate-errors')
+        options.add_argument('--incognito')
+        options.add_argument('--headless')
+        self.driver = webdriver.Chrome(ChromeDriverManager().install())    
 
+    def linkdin_login(self):  
+        self.driver.get(self.LINKDIN_LOGIN_URL)
+        time.sleep(5)
 
-links = []
-designation_l,company_l,location_l,post_date_l=[],[],[],[]
-job_type_l,employees_l,description_l,seperator_l=[],[],[],[]
-url_l,post_by_l,post_designation_l=[],[],[]
+        soup=BeautifulSoup(self.driver.page_source, 'lxml')
+        username     = self.driver.find_element(By.ID,"username")
+        username.send_keys(os.environ.get('USER_EMAIL'))
 
-area_of_search = "python"
-location = "india"
+        pword = self.driver.find_element(By.ID,"password")
+        pword.send_keys(os.environ.get('USER_PASSWORD'))		
+        self.driver.find_element(By.XPATH,"//button[@type='submit']").click()
+        time.sleep(3)
 
-class LinkdinCSVHeaders:
-   LD_DESIGNATION = 'Designation'
-   LD_COMPANY_NAME = 'Company Name'
-   LD_LOCATION = 'Location'
-   LD_POST_DATE = 'Post Date'
-   LD_JOB_TYPE = 'Job Type'
-   LD_EMPLOYEE = 'Employees'
-   LD_JOB_DESCRIPTION = 'Job Description'
-   LD_URL = 'URL'
-   LD_POST_BY = 'Post By'
-   LD_POST_DESIGNATION  = 'Post Designation'
+        self.scrap_linkdin_jobs()
 
+        time.sleep(5)
+        self.driver.close()
 
-HEADERS_LIST = [
-    LinkdinCSVHeaders.LD_DESIGNATION,
-    LinkdinCSVHeaders.LD_COMPANY_NAME,
-    LinkdinCSVHeaders.LD_LOCATION,
-    LinkdinCSVHeaders.LD_POST_DATE,
-    LinkdinCSVHeaders.LD_JOB_TYPE,
-    LinkdinCSVHeaders.LD_EMPLOYEE,
-    LinkdinCSVHeaders.LD_JOB_DESCRIPTION,
-    LinkdinCSVHeaders.LD_URL,
-    LinkdinCSVHeaders.LD_POST_BY,
-    LinkdinCSVHeaders.LD_POST_DESIGNATION
-]
-
-
-with open("test.csv", 'a') as csv_file:
-    dict_object = csv.DictWriter(csv_file, fieldnames=HEADERS_LIST)
-    dict_object.writeheader()
-
-    
+    def scrap_linkdin_jobs(self):        
         
-    for start in range(1,6):
-        context = {}
+        area_of_search = "python"
+        location = "india"
 
-        time.sleep(10)
-        # URL = 'https://www.linkedin.com/jobs/search/?currentJobId=3103152586&geoId=102713980&keywords=python&location=India&refresh=true'
-        URL = "https://www.linkedin.com/jobs/search/?keywords="+area_of_search+"&location="+location+"&start="+str(start)+"&refresh=True"
-        print(URL,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        driver.get(URL)
-        # time.sleep(10)
+        with open(self.FILE_NAME, 'a') as csv_file:
+            dict_object = csv.DictWriter(csv_file, fieldnames=self.HEADERS_LIST)
+            dict_object.writeheader()
 
-        designation = driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/a/h2').text        
-        company=driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span/span').text
-        location=driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span/span[2]').text
-        post_date = driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span[2]/span').text
+            for start in range(1,1001):
+                context = {}
 
-        time.sleep(3)
-
-        job_type = driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div[2]/ul/li[1]/span').text
-        employees = driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div/div[2]/ul/li[2]/span').text
-       
-        time.sleep(3)
+                time.sleep(3)
+                URL = "https://www.linkedin.com/jobs/search/?keywords="+area_of_search+"&location="+location+"&start="+str(start)+"&refresh=True"    
                 
-        description = driver.find_element(By.XPATH,'//*[@id="job-details"]/span').text        
 
-        time.sleep(2)
+                self.driver.get(URL)
 
-        url =driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span/span/a').get_attribute('href')       
+                time.sleep(10)
 
-        try:
-            post_by = driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[2]/a').text            
-        except:
-            post_by = "NA"            
+                try:
+                    designation = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/a/h2').text         
+                except Exception as e:
+                    designation = "NA"
 
-        try:
-            post_designation = driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[2]/div[2]/div')           
-        except:           
-            post_designation = "NA"           
+                try:
+                    company=self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span/span').text
+                except Exception as e:
+                    company = "NA"
+
+                try:
+                    location=self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span/span[2]').text
+                except Exception as e:
+                    location = "NA"              
+                
+                try:
+                    post_date = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span[2]/span').text
+                except Exception as e:
+                    post_date = "NA"
+
+                time.sleep(3)
+
+                try:
+                    job_type = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div[2]/ul/li[1]/span').text
+                except Exception as e:
+                    job_type = "NA"
+
+                try:
+                    employees = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div/div[2]/ul/li[2]/span').text
+                except Exception as e:
+                    employees = "NA"    
+                
+
+                time.sleep(3)
+
+                try:
+                    description = self.driver.find_element(By.XPATH,'//*[@id="job-details"]/span').text  
+                except Exception as e:
+                    description = "NA"                       
+                             
+
+                time.sleep(2)
+                
+                try:
+                    url =self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/div/span/span/a').get_attribute('href')
+                except Exception as e:
+                    url  = "NA"
+
+                                
+                try:
+                    post_by = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[2]/a').text                    
+                except Exception as e:
+                    post_by = "NA"                    
+
+                try:
+                    post_designation = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[2]/div[2]/div')                    
+                except Exception as e:
+                    post_designation = "NA"
 
 
-        context.update({
-                'Designation':designation,
-                'Company Name':company,
-                'Location':location,
-                'Post Date':post_date,
-                'Job Type':job_type,
-                'Employees':employees,
-                'Job Description':description,
-                'URL':url,
-                'Post By':post_by,
-                'Post Designation':post_designation
-        })
-        print(context,">>>>>>>>>>>>>>>>>>>>>>>>>>>>") 
-        dict_object.writerow(context)
-        time.sleep(10)  
-
+                context.update({
+                    LinkdinHeaders.LD_DESIGNATION:designation,
+                    LinkdinHeaders.LD_COMPANY_NAME:company,
+                    LinkdinHeaders.LD_LOCATION:location,
+                    LinkdinHeaders.LD_POST_DATE:post_date,
+                    LinkdinHeaders.LD_POST_TYPE:job_type,
+                    LinkdinHeaders.LD_EMPLOYEES:employees,
+                    LinkdinHeaders.LD_JOB_DESCRIPTION:description,
+                    LinkdinHeaders.LD_URL:url,
+                    LinkdinHeaders.LD_POST_BY:post_by,
+                    LinkdinHeaders.LD_POST_DESIGNATION:post_designation,
+                    LinkdinHeaders.LD_INDUSTRY_TYPE:""
+                })
+                dict_object.writerow(context)
+                time.sleep(10)          
         
-    
-    
-        
 
-FILE_NAME = 'scrap_linkedin.csv'           
-driver.close()
+logging.warning("{0} Program start time...".format(time.time()))
+ScrapLinkdinJobs().linkdin_login()
+logging.warning("{0} Execution completed...".format(time.time()))
