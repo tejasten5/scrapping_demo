@@ -70,11 +70,11 @@ class ScrapLinkdinJobs:
         area_of_search = "python"
         location = "india"
 
-        with open(self.FILE_NAME, 'a') as csv_file:
+        with open(self.FILE_NAME, 'a',encoding="utf-8") as csv_file:
             dict_object = csv.DictWriter(csv_file, fieldnames=self.HEADERS_LIST)
             dict_object.writeheader()
 
-            for start in range(1,1001):
+            for start in range(1,501):
                 context = {}
 
                 time.sleep(3)
@@ -140,7 +140,7 @@ class ScrapLinkdinJobs:
                     post_by = "NA"                    
 
                 try:
-                    post_designation = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[2]/div[2]/div')                    
+                    post_designation = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[2]/div/div[2]/div[2]/div[2]/div').text                   
                 except Exception as e:
                     post_designation = "NA"
 

@@ -92,7 +92,7 @@ class ScrapNaukriJobs(CSVHeaders):
         
         
 
-        with open(self.FILE_NAME, 'a') as csv_file:
+        with open(self.FILE_NAME, 'a',encoding="utf-8") as csv_file:
             dict_object = csv.DictWriter(csv_file, fieldnames=self.HEADERS_LIST)
             dict_object.writeheader()
             for link in range(len(self.job_detail_links)):
@@ -106,50 +106,69 @@ class ScrapNaukriJobs(CSVHeaders):
                     continue
                 else:
                     context.update({self.CSV_DESIGNATION:"NA" if soup.find(attrs={'class':"jd-header-title"}) == None else soup.find(attrs={'class':"jd-header-title"}).text})
-                    context.update({self.CSV_COMPANY_NAME:"NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).find(attrs={'class':"pad-rt-8"}).text})                    
+                    context.update({self.CSV_COMPANY_NAME:"NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).text})                    
                     context.update({self.CSV_SALARY:"NA" if soup.find(attrs={'class':"salary"})== None else soup.find(attrs={'class':"salary"}).text})
                     context.update({self.CSV_EXPERIENCE:"NA" if soup.find(attrs={'class':"exp"}) == None else soup.find(attrs={'class':"exp"}).text})
-                    context.update({self.CSV_LOCATION:"NA" if soup.find(attrs={'class':'loc'}) == None else soup.find(attrs={'class':'loc'}).find('a').text})
+                    
+                    loca = []
+                    location=("NA" if soup.find(attrs={'class':'loc'}) == None else soup.find(attrs={'class':'loc'}).findAll('a'))
+                    for i in location:
+                        try:
+                            loca.append(i.text)
+                        except:
+                            loca.append(["NA"])
+                    context.update({self.CSV_LOCATION:",".join(loca)})
 
                     details=[]
-                    for i in soup.find(attrs={'class':"other-details"}).findAll(attrs={'class':"details"}):
-                        details.append(i.text)
-                    context.update({self.CSV_ROLE:details[0],
-                        self.CSV_INDUSTRY_TYPE:details[1],
-                        self.CSV_FUNCTIONAL_AREA:details[2],
-                        self.CSV_EMPLOYMENT_TYPE:details[3],
-                        self.CSV_ROLE_CATEGORIE:details[4]                
-                    })
+                    try:
+                        for i in soup.find(attrs={'class':"other-details"}).findAll(attrs={'class':"details"}):
+                            details.append(i.text)
+                            context.update({self.CSV_ROLE:details[0].replace('Role',''),
+                            self.CSV_INDUSTRY_TYPE:details[1].replace('Industry Type',''),
+                            self.CSV_FUNCTIONAL_AREA:details[2].replace('Functional Area',''),
+                            self.CSV_EMPLOYMENT_TYPE:details[3].replace('Employment Type',''),
+                            self.CSV_ROLE_CATEGORIE:details[4].replace('Role Category','')                
+                        })
                     
-                    context.update({self.CSV_JOB_DESCRIPTION:"NA" if soup.find(attrs={'class':"job-desc"})==None else soup.find(attrs={'class':"job-desc"}).text})
-                    context.update({self.CSV_POST_DATE :["NA"] if soup.find(attrs={'class':"jd-stats"}) == None else [i for i in soup.find(attrs={'class':"jd-stats"})][0].text.split(':')[1]})
-                    context.update({self.CSV_WEBSITE:"NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).contents[0]['href']})
-                    context.update({self.CSV_URL:"NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).contents[0]['href']})
-                           
+                        context.update({self.CSV_JOB_DESCRIPTION:"NA" if soup.find(attrs={'class':"job-desc"})==None else soup.find(attrs={'class':"job-desc"}).text})
+                        context.update({self.CSV_POST_DATE :["NA"] if soup.find(attrs={'class':"jd-stats"}) == None else [i for i in soup.find(attrs={'class':"jd-stats"})][0].text.split(':')[1]})
 
-                    qual=[]
-                    for i in soup.find(attrs={'class':"education"}).findAll(attrs={'class':'details'}):
-                        qual.append(i.text)
-                    context.update({self.CSV_QUALIFICATION:qual}) 
+                        try:
+                            context.update({self.CSV_WEBSITE:"NA" if soup.find(attrs={'class':"jd-header-comp-name"}).contents[0]['href'] == None else soup.find(attrs={'class':"jd-header-comp-name"}).contents[0]['href']})
+                        except:
+                            context.update({self.CSV_WEBSITE:"NA"})
+
+                        try:    
+                            context.update({self.CSV_URL:"NA" if soup.find(attrs={'class':"jd-header-comp-name"}) == None else soup.find(attrs={'class':"jd-header-comp-name"}).contents[0]['href']})
+                        except:
+                            context.update({self.CSV_WEBSITE:"NA"})
+                       
+
+                        qual=[]
+                        for i in soup.find(attrs={'class':"education"}).findAll(attrs={'class':'details'}):
+                            qual.append(i.text)
+                        context.update({self.CSV_QUALIFICATION:qual}) 
                     
 
-                    sk=[]
-                    for i in soup.find(attrs={'class':"key-skill"}).findAll('a'):
-                        sk.append(i.text)                     
-                    context.update({self.CSV_SKILL:",".join(sk)})      
+                        sk=[]
+                        for i in soup.find(attrs={'class':"key-skill"}).findAll('a'):
+                            sk.append(i.text)                     
+                        context.update({self.CSV_SKILL:",".join(sk)})      
 
-                    if soup.find(attrs={'class':"name-designation"})==None:
-                        context.update({self.CSV_POST_BY:"NA"})         
-                    else:
-                        context.update({self.CSV_POST_BY:soup.find(attrs={'class':"name-designation"}).text})
+                        if soup.find(attrs={'class':"name-designation"})==None:
+                            context.update({self.CSV_POST_BY:"NA"})         
+                        else:
+                            context.update({self.CSV_POST_BY:soup.find(attrs={'class':"name-designation"}).text})
 
 
 
-                    if soup.find(attrs={'class':"about-company"})==None:                    
-                        context.update({self.CSV_ABOUT_COMPANY:"NA"})
-                    else:
-                        context.update({self.CSV_ADDRESS:"NA" if soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}) == None else soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}).find('span').text})                      
-                        context.update({self.CSV_ABOUT_COMPANY:soup.find(attrs={'class':"about-company"}).find(attrs={'class':"detail dang-inner-html"}).text})
+                        if soup.find(attrs={'class':"about-company"})==None:                    
+                            context.update({self.CSV_ABOUT_COMPANY:"NA"})
+                        else:
+                            context.update({self.CSV_ADDRESS:"NA" if soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}) == None else soup.find(attrs={'class':"about-company"}).find(attrs={'class':"comp-info-detail"}).text})                      
+                            context.update({self.CSV_ABOUT_COMPANY:soup.find(attrs={'class':"about-company"}).find(attrs={'class':"detail dang-inner-html"}).text})
+                    except:
+                        pass
                 dict_object.writerow(context)
 
         
