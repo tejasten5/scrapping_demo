@@ -37,6 +37,7 @@ class ScrapNaukriJobs(CSVHeaders):
     FILE_NAME = 'scrap_naukri_jobs.csv'
     CTC_FILTER_QUERY_PARAMS = '&ctcFilter=101&ctcFilter=15to25&ctcFilter=25to50&ctcFilter=50to75&ctcFilter=75to100'
     CITY_FILTER_PARAMS = '&cityTypeGid=6&cityTypeGid=17&cityTypeGid=73&cityTypeGid=97&cityTypeGid=134&cityTypeGid=139&cityTypeGid=183&cityTypeGid=220&cityTypeGid=232&cityTypeGid=9508&cityTypeGid=9509'
+    INDUSTRY_FILTER_PARAMS = '&industryTypeIdGid=103&industryTypeIdGid=107&industryTypeIdGid=108&industryTypeIdGid=110&industryTypeIdGid=111&industryTypeIdGid=112&industryTypeIdGid=113&industryTypeIdGid=119&industryTypeIdGid=127&industryTypeIdGid=131&industryTypeIdGid=132&industryTypeIdGid=133&industryTypeIdGid=137&industryTypeIdGid=149&industryTypeIdGid=155&industryTypeIdGid=156&industryTypeIdGid=164&industryTypeIdGid=167&industryTypeIdGid=172&industryTypeIdGid=175'
     HEADERS_LIST = [
             CSVHeaders.CSV_DESIGNATION,
             CSVHeaders.CSV_COMPANY_NAME,
@@ -71,7 +72,7 @@ class ScrapNaukriJobs(CSVHeaders):
     def get_job_detail_links(self):
         for page in range(1,2):
             query_param = f'{self.language}-jobs'
-            URL = f"{self.BASE_URL}{query_param}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}" if page == 1 else f"{self.BASE_URL}{query_param}-{str(page)}?k={self.language}{self.CTC_FILTER_QUERY_PARAMS}{self.CITY_FILTER_PARAMS}"            
+            URL = URL = f"{self.BASE_URL}{query_param}?k={self.language}{self.CITY_FILTER_PARAMS}{self.CTC_FILTER_QUERY_PARAMS}{self.INDUSTRY_FILTER_PARAMS}" if page == 1 else f"{self.BASE_URL}{query_param}-{str(page)}?k={self.language}{self.CITY_FILTER_PARAMS}{self.CTC_FILTER_QUERY_PARAMS}{self.INDUSTRY_FILTER_PARAMS}"            
             self.driver.get(URL)            
             time.sleep(5) 
             soup=BeautifulSoup(self.driver.page_source, 'lxml')
