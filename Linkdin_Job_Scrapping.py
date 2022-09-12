@@ -39,8 +39,11 @@ class ScrapLinkdinJobs:
         LinkdinHeaders.LD_POST_DESIGNATION,
         LinkdinHeaders.LD_INDUSTRY_TYPE
     ]
+    LINKDIN_JOB_SEARCH_URL = 'https://www.linkedin.com/jobs/search/'
+    LINKDIN_INDUSTRY_TYPE = 'f_I=6%2C43%2C112%2C25%2C47%2C80%2C14%2C27%2C24%2C116%2C68%2C91%2C48%2C19%2C1%2C82%2C75%2C143%2C98&f_PP=105214831%2C105556991%2C103671728%2C106888327%2C106164952%2C104793846%2C104869687%2C115702354%2C105282602%2C104990346&'
+    LINKDIN_GEO_ID = '102713980'
 
-    def __init__(self,area_of_search=None,location=None):
+    def __init__(self,area_of_search=None):
         options = webdriver.ChromeOptions()
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--incognito')
@@ -65,25 +68,27 @@ class ScrapLinkdinJobs:
         time.sleep(5)
         self.driver.close()
 
-    def scrap_linkdin_jobs(self):        
-        
-        area_of_search = "python"
-        location = "india"
+    def scrap_linkdin_jobs(self):           
 
         with open(self.FILE_NAME, 'a',encoding="utf-8") as csv_file:
             dict_object = csv.DictWriter(csv_file, fieldnames=self.HEADERS_LIST)
             dict_object.writeheader()
 
             for start in range(1,501):
-                context = {}
+                context = {}               
 
                 time.sleep(3)
-                URL = "https://www.linkedin.com/jobs/search/?keywords="+area_of_search+"&location="+location+"&start="+str(start)+"&refresh=True"    
-                
+                URL = f"{self.LINKDIN_JOB_SEARCH_URL}?{self.LINKDIN_INDUSTRY_TYPE}keywords={area_of_search}+&geoId={self.LINKDIN_GEO_ID}&refresh=true&sortBy=R&start={str(start)}"    
 
                 self.driver.get(URL)
 
                 time.sleep(10)
+                
+                try:
+                    industry_type = self.driver.find_element(By.XPATH,'/html/body/div[5]/div[3]/div[4]/div/div/main/div/section[2]/div/div[2]/div[1]/div/div[4]/section/section/div[1]/div[2]').text.split()[0]
+                except Exception as e:
+                    industry_type = "NA"               
+                
 
                 try:
                     designation = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/a/h2').text         
@@ -156,12 +161,13 @@ class ScrapLinkdinJobs:
                     LinkdinHeaders.LD_URL:url,
                     LinkdinHeaders.LD_POST_BY:post_by,
                     LinkdinHeaders.LD_POST_DESIGNATION:post_designation,
-                    LinkdinHeaders.LD_INDUSTRY_TYPE:""
+                    LinkdinHeaders.LD_INDUSTRY_TYPE:industry_type
                 })
                 dict_object.writerow(context)
                 time.sleep(10)          
         
 
 logging.warning("{0} Program start time...".format(time.time()))
-ScrapLinkdinJobs().linkdin_login()
+area_of_search = "php"
+ScrapLinkdinJobs(area_of_search).linkdin_login()
 logging.warning("{0} Execution completed...".format(time.time()))
