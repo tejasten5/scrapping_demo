@@ -50,8 +50,6 @@ class LinkdinHeaders:
     LD_DESIGNATION = 'Designation'    
     LD_NAME = 'Name'
 
-    
-
 class ScrapLinkdinJobs:
     LINKDIN_LOGIN_URL = "https://www.linkedin.com/login"
     FILE_NAME = "linkdin_profiles.csv"    
@@ -85,14 +83,16 @@ class ScrapLinkdinJobs:
     def scrap_profile_data(self):           
 
         with open(self.FILE_NAME, 'a',encoding="utf-8") as csv_file:
-            dict_object = csv.DictWriter(csv_file, fieldnames=self.HEADERS_LIST)
+            dict_object = csv.DictWriter(csv_file, fieldnames=[LinkdinHeaders.LD_DESIGNATION, LinkdinHeaders.LD_NAME])
             dict_object.writeheader()
 
             for start in range(1,501):
                 context = {}               
-
+                import pdb;pdb.set_trace()
+                # currentCompany=%5B"1362039"%5D&keywords=neosoft&origin=FACETED_SEARCH&sid=tg%3A&title=CEO
+                # https://www.linkedin.com/search/results/people/?currentCompany=%5B%221362039%22%5D&heroEntityKey=urn%3Ali%3Aorganization%3A1362039&keywords=neosoft&origin=FACETED_SEARCH&position=0&searchId=82952b0f-fe4d-4809-ba18-e4408731a5de&sid=lTD&title=CTO
                 time.sleep(3)
-                URL = f"{self.LINKDIN_JOB_SEARCH_URL}?{self.LINKDIN_INDUSTRY_TYPE}keywords={area_of_search}+&geoId={self.LINKDIN_GEO_ID}&refresh=true&sortBy=R&start={str(start)}"    
+                URL = f"{self.LINKDIN_PROFILE_SEARCH_URL}"    
                 
                 self.driver.get(URL)
 
