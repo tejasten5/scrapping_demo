@@ -102,47 +102,30 @@ class ScrapLinkdinProfiles:
             for url in self.url_generator(url_list):
                 time.sleep(5)                
                 self.driver.get(url)
-
-                # time.sleep(30)
+                context = {}
+                
                 soup=BeautifulSoup(self.driver.page_source, 'lxml')
-
-                # if search-results-container
-                # if soup.findAll(attrs={'class':"reusable-search__entity-result-list list-style-none"}):
-
-
-                # entity-result__secondary-subtitle t-14 t-normal
-                #  soup.findAll(attrs={'class':"entity-result__title-line entity-result__title-line--2-lines"}):
-                import pdb;pdb.set_trace()
-
-
-                time.sleep(3000000)
-            # for start in range(1,501):
-            #     context = {}               
-                
-            #     time.sleep(3)
-            #     URL = f"{self.LINKDIN_PROFILE_SEARCH_URL}"    
-                
-            #     self.driver.get(URL)
-
-            #     time.sleep(10)
-                
-            #     try:
-            #         full_name = self.driver.find_element(By.XPATH,'/html/body/div[5]/div[3]/div[4]/div/div/main/div/section[2]/div/div[2]/div[1]/div/div[4]/section/section/div[1]/div[2]').text.split()[0]
-            #     except Exception as e:
-            #         full_name = "NA"               
                 
 
-            #     try:
-            #         designation = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/section[2]/div/div[2]/div[1]/div/div[1]/div/div[1]/div[1]/a/h2').text         
-            #     except Exception as e:
-            #         designation = "NA"   
+                if soup.find(attrs={'class':'reusable-search-filters__no-results artdeco-card mb2'}):
+                    continue
+                else:
+                    try:
+                        full_name = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/div/div[1]/ul/li[1]/div/div/div[2]/div[1]/div[1]/div/span[1]/span/a/span/span[1]').text
+                    except Exception as e:
+                        full_name = "NA"
 
-                
+                    try:
+                        designation = self.driver.find_element(By.XPATH,'//*[@id="main"]/div/div/div[1]/ul/li[1]/div/div/div[2]/div[1]/div[2]/div/div[1]').text
+                    except Exception as e:
+                        designation = "NA"    
 
+                    print(designation,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>",full_name)
 
-                # context.update({LinkdinHeaders.LD_DESIGNATION:designation,LinkdinHeaders.LD_NAME:full_name})
-                # dict_object.writerow(context)
-                # time.sleep(10)          
+                    context.update({LinkdinHeaders.LD_DESIGNATION:designation,LinkdinHeaders.LD_NAME:full_name})
+                    print(context,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+                dict_object.writerow(context)
+                time.sleep(10)          
         
 
 logging.warning("{0} Program start time...".format(time.time()))
