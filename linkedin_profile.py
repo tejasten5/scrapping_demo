@@ -23,6 +23,7 @@ class LinkdinHeaders:
 class ScrapLinkdinJobs:
     LINKDIN_LOGIN_URL = "https://linkedin.com/uas/login"
     FILE_NAME = "linkdin_profile.csv"
+    NEW_FILE_NAME = "filter_profile.csv"
     HEADERS_LIST = [
         LinkdinHeaders.LD_FIRST_NAME,
         LinkdinHeaders.LD_LAST_NAME,
@@ -64,7 +65,9 @@ class ScrapLinkdinJobs:
         #     dict_object = csv.DictWriter(csv_file, fieldnames=self.HEADERS_LIST)
         #     dict_object.writeheader()
         #     context = {}
-        filter_designation = ["VP","VP IT","CIO" ,"CTO","CISO","Director IT","Head IT- (Technology)","Procurement Director","Manager","Head","CHRO","HR Manager","HR Director","VP HR","Head HR"]
+        companies = ["aditya-birla-capital","Aditya Birla Chemicals (Thailand)","Aditya Birla Fashion and Retail","Aditya Birla Grasun Chemicals (Fangchenggang)"]
+        filter_designation = ["VP","VP IT","CIO","Chief Information Officer" ,"CTO","Chief Technology Officer","CISO","Chief Information Security Officer","Chief ","Director IT","Head IT- (Technology)","Procurement Director","Manager","Head","CHRO","HR Manager","HR Director","VP HR","Head HR","Chief Human Resource Officer"]
+        # filter_designation = ["VP","VP IT"]
         urls = []
         first_name_l,last_name_l = [],[]
         company_name = []
@@ -72,13 +75,14 @@ class ScrapLinkdinJobs:
         countries = []
         cities = []
 
-        for filter in filter_designation:
-            for i in range(1,500):
-                URL = 'https://www.linkedin.com/search/results/people/?company=aditya-birla-capital&page='+str(i)+'&title='+filter
-                self.driver.get(URL)
+        for company in companies:
+            for filter in filter_designation:
+                for i in range(1,500):
+                    URL = 'https://www.linkedin.com/search/results/people/?company='+company+'&page='+str(i)+'&title='+filter
+                    self.driver.get(URL)
 
-                time.sleep(10)
-                soup=BeautifulSoup(self.driver.page_source, 'lxml')
+                    time.sleep(10)
+                    soup=BeautifulSoup(self.driver.page_source, 'lxml')
         # all_links = []
         # elements = self.driver.find_elements(By.XPATH,'//*[@id="main"]/div/div/div[1]/ul/li')
         # print(len(elements))
@@ -86,82 +90,82 @@ class ScrapLinkdinJobs:
         # print("all_links===>>>",all_links)
         
         # for x in all_links:
-                if soup.find(attrs={'class':'reusable-search-filters__no-results artdeco-card mb2'}):
-                    break
+                    if soup.find(attrs={'class':'reusable-search-filters__no-results artdeco-card mb2'}):
+                        break
 
-                all_names=self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[1]/div/span[1]/span/a')
-                for name in all_names:
-                    n = name.text.split()
+                    all_names=self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[1]/div/span[1]/span/a')
+                    for name in all_names:
+                        n = name.text.split()
                 # print(n[0])
-                    try:
-                        first_name_l.append(n[0])
-                        first_name=n[0]
-                    except:
-                        first_name_l.append('NA')
+                        try:
+                            first_name_l.append(n[0])
+                            first_name=n[0]
+                        except:
+                            first_name_l.append('NA')
                 # print(n[1])
+                        try:
+                            last_name_l.append(n[1])
+                            last_name=n[0]
+                        except:
+                            last_name_l.append("NA")
+
+            
                     try:
-                        last_name_l.append(n[1])
-                        last_name=n[0]
-                    except:
-                        last_name_l.append("NA")
-
-            
-                try:
-                    for i in range(1,len(all_names)+1):
+                        for i in range(1,len(all_names)+1):
             # print("neosoft")
-                        a="aditya-birla-capital"
+                            a=company
+                            company_name.append(str(a))
+                    except:
                         company_name.append(str(a))
-                except:
-                    company_name.append(str(a))
 
             
-                try:
-                    all_designations=self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[2]/div/div[1]')
-                    for designation in all_designations:
+                    try:
+                        all_designations=self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[2]/div/div[1]')
+                        for designation in all_designations:
             # print(designation.text)if designation in filter_degisnation:
-                        designations.append(designation.text)
-                except:
-                    designations.append("NA")
+                            designations.append(designation.text)
+                    except:
+                        designations.append("NA")
 
 
             
-                try:
-                    for i in range(1,len(all_names)+1):
+                    try:
+                        for i in range(1,len(all_names)+1):
             # print("India")
             # b = "India"
-                        countries.append("India")
-                except:
-                    countries.append("NA")
+                            countries.append("India")
+                    except:
+                        countries.append("NA")
 
             
-                try:
-                    all_cities = self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[2]/div/div[2]')
-                    for city in all_cities:
+                    try:
+                        all_cities = self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[2]/div/div[2]')
+                        for city in all_cities:
             # print(city.text)
-                        cities.append(city.text)
-                except:
-                    cities.append("NA")
+                            cities.append(city.text)
+                    except:
+                        cities.append("NA")
 
             
-                try:
-                    linkedin_url = self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[1]/div/span/span/a')
-                    for url in linkedin_url:
+                    try:
+                        linkedin_url = self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[1]/div/span/span/a')
+                        for url in linkedin_url:
             # print(url.get_attribute("href").split('?')[0])
-                        u = url.get_attribute("href").split('?')[0]
+                            u = url.get_attribute("href").split('?')[0]
 
-                        urls.append(u)
-                except:
-                    urls.append("NA")
+                            urls.append(u)
+                    except:
+                        urls.append("NA")
         
-                print(first_name_l)
-                print(last_name_l)
-                print(company_name)
-                print(designations)
-                print(countries)
-                print(cities)
-                print(urls)
-                print("hi==========>>>>>>>>>>>>>")
-                time.sleep(5)
+                    print(first_name_l)
+                    print(last_name_l)
+                    print(company_name)
+                    print(designations)
+                    print(countries)
+                    print(cities)
+                    print(urls)
+                    print("hi==========>>>>>>>>>>>>>")
+                    time.sleep(5)
 
         
 
@@ -176,7 +180,12 @@ class ScrapLinkdinJobs:
         df.to_csv(self.FILE_NAME,index=False)
         # df['City']
         # self.driver.find_element(By.XPATH,'/html/body/div[5]/div[3]/div[2]/div/div[1]/main/div/div/div[3]/div/div/button[2]/span')
-
+        # if self.FILE_NAME is not None:
+        time.sleep(10)
+        read_CSV = pd.read_csv(self.FILE_NAME)
+        filtered_df = read_CSV[read_CSV['Designation'].str.contains('VP')|read_CSV['Designation'].str.contains('VP IT')|read_CSV['Designation'].str.contains('Vice President')|read_CSV['Designation'].str.contains('CIO')|read_CSV['Designation'].str.contains('Chief Information Officer')|read_CSV['Designation'].str.contains('CTO')|read_CSV['Designation'].str.contains('Chief Technology Officer')|read_CSV['Designation'].str.contains('CISO')|read_CSV['Designation'].str.contains('Chief Information Security Officer')|read_CSV['Designation'].str.contains('Director IT')|read_CSV['Designation'].str.contains('Head IT- (Technology)')|read_CSV['Designation'].str.contains('Procurement Director')|read_CSV['Designation'].str.contains('Manager')|read_CSV['Designation'].str.contains('Head')|read_CSV['Designation'].str.contains('CHRO')|read_CSV['Designation'].str.contains('Chief Human Resource Officer')|read_CSV['Designation'].str.contains('HR Manager')|read_CSV['Designation'].str.contains('Human Resource Manager')|read_CSV['Designation'].str.contains('HR Director')|read_CSV['Designation'].str.contains('Human Resource Director')|read_CSV['Designation'].str.contains('VP HR')|read_CSV['Designation'].str.contains('Vice President Human Resource')|read_CSV['Designation'].str.contains('Head HR')|read_CSV['Designation'].str.contains('Head  Human Resource')]
+        time.sleep(10)
+        filtered_df.to_csv(self.NEW_FILE_NAME)
  
 logging.warning("{0} Program start time...".format(time.time()))
 ScrapLinkdinJobs().linkdin_login()

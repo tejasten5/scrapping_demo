@@ -62,8 +62,8 @@ class ScrapLinkdinJobs:
 
     def scrap_linkdin_jobs(self):  
 
-        companies = ["aditya-birla-capital","Aditya Birla Chemicals (Thailand)","Aditya Birla Fashion and Retail","Aditya Birla Grasun Chemicals (Fangchenggang)"]
-        filter_designation = ["VP","VP IT","CIO","Chief Information Officer" ,"CTO","Chief Technology Officer","CISO","Chief Information Security Officer","Chief ","Director IT","Head IT- (Technology)","Procurement Director","Manager","Head","CHRO","HR Manager","HR Director","VP HR","Head HR","Chief Human Resource Officer"]
+        companies = ["aditya-birla-capital"]
+        filter_designation = ["VP IT","CTO","Director IT","Head IT -(Technology)","VP-IT","Vice President - IT"]
         
         urls = []
         first_name_l,last_name_l = [],[]
@@ -130,7 +130,7 @@ class ScrapLinkdinJobs:
 
             
                     try:
-                        all_cities = self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[2]/div/div[2]')
+                        all_cities = self.driver.find_elements(By.XPATH,'//*[@class="entity-result"]/div/div[2]/div[1]/div[2]/div[2]')
                         for city in all_cities:
             
                             cities.append(city.text)
@@ -161,20 +161,20 @@ class ScrapLinkdinJobs:
         
 
         df=pd.DataFrame()
-        df['Firstname'] = pd.Series(first_name_l)
+        df['Firstname'] = pd.Series(first_name_l,dtype='object')
         df['Lastname'] = last_name_l
-        df['Company']=pd.Series(company_name)
-        df['Designation']=pd.Series(designations)
-        df['Country']=pd.Series(countries)
-        df['City']=pd.Series(cities)
-        df['URL']=pd.Series(urls)
+        df['Company']=pd.Series(company_name,dtype='object')
+        df['Designation']=pd.Series(designations,dtype='object')
+        df['Country']=pd.Series(countries,dtype='object')
+        df['City']=pd.Series(cities,dtype='object')
+        df['URL']=pd.Series(urls,dtype='object')
         df.to_csv(self.FILE_NAME,index=False)
         
-        time.sleep(10)
-        read_CSV = pd.read_csv(self.FILE_NAME)
-        filtered_df = read_CSV[read_CSV['Designation'].str.contains('VP')|read_CSV['Designation'].str.contains('VP IT')|read_CSV['Designation'].str.contains('Vice President')|read_CSV['Designation'].str.contains('CIO')|read_CSV['Designation'].str.contains('Chief Information Officer')|read_CSV['Designation'].str.contains('CTO')|read_CSV['Designation'].str.contains('Chief Technology Officer')|read_CSV['Designation'].str.contains('CISO')|read_CSV['Designation'].str.contains('Chief Information Security Officer')|read_CSV['Designation'].str.contains('Director IT')|read_CSV['Designation'].str.contains('Head IT- (Technology)')|read_CSV['Designation'].str.contains('Procurement Director')|read_CSV['Designation'].str.contains('Manager')|read_CSV['Designation'].str.contains('Head')|read_CSV['Designation'].str.contains('CHRO')|read_CSV['Designation'].str.contains('Chief Human Resource Officer')|read_CSV['Designation'].str.contains('HR Manager')|read_CSV['Designation'].str.contains('Human Resource Manager')|read_CSV['Designation'].str.contains('HR Director')|read_CSV['Designation'].str.contains('Human Resource Director')|read_CSV['Designation'].str.contains('VP HR')|read_CSV['Designation'].str.contains('Vice President Human Resource')|read_CSV['Designation'].str.contains('Head HR')|read_CSV['Designation'].str.contains('Head  Human Resource')]
-        time.sleep(10)
-        filtered_df.to_csv(self.NEW_FILE_NAME)
+        # time.sleep(10)
+        # read_CSV = pd.read_csv(self.FILE_NAME)
+        # filtered_df = read_CSV[read_CSV['Designation'].astype(str).str.contains('VP')|read_CSV['Designation'].astype(str).str.contains('VP IT')|read_CSV['Designation'].astype(str).str.contains('Vice President')|read_CSV['Designation'].str.contains('CIO')|read_CSV['Designation'].str.contains('Chief Information Officer')|read_CSV['Designation'].str.contains('CTO')|read_CSV['Designation'].str.contains('Chief Technology Officer')|read_CSV['Designation'].str.contains('CISO')|read_CSV['Designation'].str.contains('Chief Information Security Officer')|read_CSV['Designation'].str.contains('Director IT')|read_CSV['Designation'].str.contains('Head IT- (Technology)')]
+        # time.sleep(10)
+        # filtered_df.to_csv(self.NEW_FILE_NAME)
  
 logging.warning("{0} Program start time...".format(time.time()))
 ScrapLinkdinJobs().linkdin_login()
