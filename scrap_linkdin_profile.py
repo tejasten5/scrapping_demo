@@ -186,9 +186,8 @@ class ScrapLinkdinJobs:
                             li.append(val)
                     total_records = li[0]
                     page = round(total_records/self.TOTAL_RECORDS_ON_SINGLE_PAGE)                      
-                    import pdb;pdb.set_trace()
+                    
                     var_page = page
-                    print(var_page,">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
                     for page_num in range(1,var_page+1):
                         print(page_num,">>>")
                         
